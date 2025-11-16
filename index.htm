@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>English Sentence Trainer</title>
+    <style>
+        /* === Адаптивный Дизайн (iPhone) === */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 110px 15px 15px 15px; 
+            background-color: #f0f0f7; 
+            color: #333;
+            max-width: 414px; 
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            left: 50%; 
+            transform: translateX(-50%); 
+            z-index: 1000; 
+            width: calc(100% - 30px); 
+            max-width: 414px; 
+            text-align: center;
+            padding: 10px;
+            background-color: #fff;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); 
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: #007aff; 
+            margin: 0;
+        }
+
+        #score-display {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #34c759; 
+            margin-top: 10px;
+        }
+
+        .sentence-card {
+            background-color: #fff;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .russian-text {
+            font-size: 1rem;
+            margin-bottom: 15px; /* Увеличенный отступ */
+            font-weight: 500;
+            color: #555;
+        }
+
+        /* ИСПРАВЛЕНИЕ: Располагаем элементы вертикально */
+        .input-group {
+            display: flex;
+            flex-direction: column; /* Вертикальное расположение */
+            gap: 10px;
+        }
+
+        .english-input {
+            width: 100%; /* Занимает всю ширину контейнера */
+            padding: 10px;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            transition: border-color 0.3s, background-color 0.3s;
+            -webkit-appearance: none; 
+            box-sizing: border-box; /* Важно, чтобы padding не увеличивал общую ширину */
+        }
+
+        .english-input:focus {
+            outline: none;
+            border-color: #007aff;
+            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.3);
+        }
+
+        .check-button {
+            /* Кнопка занимает всю ширину */
+            width: 100%; 
+            padding: 12px 15px; /* Немного увеличенный вертикальный отступ для удобства нажатия */
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            background-color: #007aff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, opacity 0.2s;
+            -webkit-appearance: none;
+        }
+
+        .check-button:hover {
+            background-color: #005bb5;
+        }
+
+        .check-button:active {
+            opacity: 0.8;
+        }
+
+        /* Color Feedback */
+        .correct {
+            background-color: #e6ffed; 
+            border-color: #34c759; 
+        }
+
+        .incorrect {
+            background-color: #fff0f0; 
+            border-color: #ff3b30; 
+        }
+
+        .feedback-text {
+            margin-top: 10px;
+            font-style: italic;
+            font-size: 0.9rem;
+            color: #888;
+            min-height: 20px;
+        }
+
+        /* History Block Styles */
+        #history-block {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #history-block h2 {
+            font-size: 1.2rem;
+            color: #007aff;
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        #history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #history-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f7;
+            font-size: 0.95rem;
+            word-wrap: break-word; 
+        }
+
+        #history-list li:last-child {
+            border-bottom: none;
+        }
+
+        .status-icon {
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .sentence-number {
+            font-weight: bold;
+            color: #555;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>English Sentence Trainer</h1>
+        <div id="score-display">Score: 0</div>
+    </header>
+
+    <div id="sentences-container">
+        </div>
+
+    <div id="history-block">
+        <h2>Your Attempts History</h2>
+        <ul id="history-list">
+            </ul>
+    </div>
+    <script>
+        const sentences = [
+            { ru: "Я видел кошку вчера.", en: "I saw a cat yesterday." },
+            { ru: "Она хочет съесть яблоко.", en: "She wants to eat an apple." },
+            { ru: "Можешь передать мне соль, пожалуйста?", en: "Can you pass me the salt, please?" },
+            { ru: "Мне нужно немного сахара для кофе.", en: "I need some sugar for my coffee." },
+            { ru: "У вас есть какие-нибудь вопросы?", en: "Do you have any questions?" },
+            { ru: "Они играют в футбол прямо сейчас.", en: "They are playing football right now." },
+            { ru: "У меня есть новая машина.", en: "I have a new car." },
+            { ru: "Мы отлично провели время на вечеринке вчера.", en: "We had a great time at the party yesterday." },
+            { ru: "Эта книга моя.", en: "The book is mine." },
+            { ru: "Это твоё?", en: "Is it yours?" },
+            { ru: "Где находится ближайший ресторан?", en: "Where is the nearest restaurant?" },
+            { ru: "Когда твой день рождения?", en: "When is your birthday?" },
+            { ru: "Почему ты грустный?", en: "Why are you sad?" },
+            { ru: "Он работает в банке.", en: "He works in a bank." },
+            { ru: "Ей нравится читать книги.", en: "She likes to read books." },
+            { ru: "Джессика занимается каждый вечер.", en: "Jessica studies every evening." },
+            { ru: "Я всегда чищу зубы перед сном.", en: "I always brush my teeth before bed." },
+            { ru: "Они обычно ходят на прогулку в парк.", en: "They usually go for a walk in the park." },
+            { ru: "Мы часто едим вне дома по выходным.", en: "We often eat out on weekends." },
+            { ru: "Я иногда забываю свои ключи.", en: "I sometimes forget my keys." },
+            { ru: "Она редко смотрит телевизор.", en: "She rarely watches TV." },
+            { ru: "Он никогда не ест мясо.", en: "He never eats meat." },
+            { ru: "Я ходил в магазин вчера.", en: "I went to the shop yesterday." },
+            { ru: "Она позавтракала утром.", en: "She ate breakfast in the morning." },
+            { ru: "Они смотрели фильм прошлой ночью.", en: "They saw a movie last night." },
+            { ru: "Я могу говорить по-английски?", en: "Can I speak English?" },
+            { ru: "Он умеет играть на гитаре?", en: "Can he play the guitar?" },
+            { ru: "Давай встретимся в 3 часа.", en: "Let's meet at 3 o'clock." },
+            { ru: "Мой день рождения в июле.", en: "My birthday is in July." },
+            { ru: "Собрание в пятницу.", en: "The meeting is on Friday." },
+            { ru: "Я поеду на пляж завтра.", en: "I will go to the beach tomorrow." },
+            { ru: "Она позвонит тебе позже?", en: "Will she call you later?" }
+        ];
+
+        let score = 0;
+        const container = document.getElementById('sentences-container');
+        const scoreDisplay = document.getElementById('score-display');
+        const historyList = document.getElementById('history-list'); 
+
+        // Function to normalize text
+        function normalizeText(text) {
+            return text.toLowerCase()
+                       .replace(/['".,?!]/g, '')
+                       .replace(/\s+/g, ' ') 
+                       .trim();
+        }
+
+        // Function to log the attempt, now takes index (number)
+        function logAttempt(index, userText, statusIcon) {
+            const listItem = document.createElement('li');
+            listItem.innerHTML = `<span class="sentence-number">${index + 1}.</span> <span class="status-icon">${statusIcon}</span> ${userText}`;
+            historyList.prepend(listItem);
+        }
+
+        // Check function
+        function checkSentence(index) {
+            const card = document.getElementById(`card-${index}`);
+            const input = document.getElementById(`input-${index}`);
+            const feedback = document.getElementById(`feedback-${index}`);
+            const correctText = sentences[index].en;
+            
+            const rawUserText = input.value; 
+
+            const userAnswer = normalizeText(rawUserText);
+            const correctAnswer = normalizeText(correctText);
+
+            let attempts = parseInt(card.getAttribute('data-attempts')) || 0;
+
+            if (userAnswer === correctAnswer) {
+                // Correct
+                let statusIcon = '✅';
+                
+                if (attempts === 0) {
+                    // Correct on first attempt
+                    score++;
+                    scoreDisplay.textContent = `Score: ${score}`;
+                    
+                    input.value = correctText; 
+                    input.classList.add('correct');
+                    input.setAttribute('disabled', 'true');
+                    feedback.textContent = "✅ Correct! Great job.";
+                    
+                    logAttempt(index, rawUserText, statusIcon);
+
+                } else {
+                    // Correct on second attempt (don't count score)
+                    input.value = correctText; 
+                    input.classList.add('correct');
+                    input.setAttribute('disabled', 'true');
+                    feedback.textContent = "✅ Correct on the second try.";
+                }
+
+                // Disable check button
+                card.querySelector('.check-button').setAttribute('disabled', 'true');
+                
+            } else {
+                // Incorrect
+                attempts++;
+                card.setAttribute('data-attempts', attempts);
+                
+                // Логируем неверную попытку
+                logAttempt(index, rawUserText, '🚫');
+
+                if (attempts === 1) {
+                    // First attempt incorrect
+                    input.classList.add('incorrect');
+                    input.value = ""; // Clear text
+                    feedback.textContent = "❌ Incorrect. Try again.";
+
+                    // Remove 'incorrect' class briefly for flashing effect
+                    setTimeout(() => {
+                        input.classList.remove('incorrect');
+                    }, 500);
+
+                } else {
+                    // Second attempt incorrect
+                    input.value = correctText;
+                    input.classList.remove('incorrect'); 
+                    input.setAttribute('disabled', 'true'); 
+                    card.querySelector('.check-button').setAttribute('disabled', 'true'); 
+                    
+                    // Show correct answer without color
+                    feedback.textContent = `Correct answer: ${correctText}`;
+                }
+            }
+        }
+
+        // Generate sentence cards
+        sentences.forEach((s, index) => {
+            const card = document.createElement('div');
+            card.className = 'sentence-card';
+            card.id = `card-${index}`;
+            card.setAttribute('data-attempts', '0'); // Attempts counter
+
+            card.innerHTML = `
+                <div class="russian-text">${index + 1}. ${s.ru}</div>
+                <div class="input-group">
+                    <input type="text" 
+                           id="input-${index}" 
+                           class="english-input" 
+                           placeholder="Enter the English equivalent" 
+                           aria-label="English equivalent">
+                    <button class="check-button" 
+                            onclick="checkSentence(${index})" 
+                            aria-controls="feedback-${index}">
+                        Check
+                    </button>
+                </div>
+                <div id="feedback-${index}" class="feedback-text"></div>
+            `;
+            container.appendChild(card);
+        });
+    </script>
+</body>
+</html>
